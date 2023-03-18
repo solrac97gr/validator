@@ -1,78 +1,204 @@
 package validations
 
 import (
-	"net"
-	"net/url"
+	"errors"
 	"regexp"
+	"strings"
 )
 
-// emailRegex is a regular expression for validating email addresses.
-// It is based on the regex from the HTML5 specification.
-// Used as var instead of const to avoid initialization loop.
-// and to avoid the need to use regexp.MustCompile
-var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9.!#$%&'*+/=?^_{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$`)
+var (
+	ErrNotAlpha               = errors.New("string is not alpha")
+	ErrNotAlphanumeric        = errors.New("string is not alphanumeric")
+	ErrNotAlphanumericUnicode = errors.New("string is not alphanumeric unicode")
+	ErrNotAlphaUnicode        = errors.New("string is not alpha unicode")
+	ErrNotASCIICode           = errors.New("string is not ASCII code")
+	ErrNotBoolean             = errors.New("string is not a boolean")
+	ErrDoesNotContain         = errors.New("string does not contain the substring")
+	ErrDoesNotContainAny      = errors.New("string does not contain any of the substrings")
+	ErrDoesNotContainRune     = errors.New("string does not contain the rune")
+	ErrEndsWith               = errors.New("string ends with the substring")
+	ErrEndsNotWith            = errors.New("string does not end with the substring")
+	ErrExcludes               = errors.New("string includes the substring")
+	ErrExcludesAll            = errors.New("string does not include all of the substrings")
+	ErrIncludesAll            = errors.New("string does not include all of the substrings")
+	ErrExcludesRune           = errors.New("string includes the rune")
+	ErrNotLowerCase           = errors.New("string is not lowercase")
+	ErrNotUpercase            = errors.New("string is not uppercase")
+	ErrNotMultibyte           = errors.New("string does not contain one or more multibyte characters")
+	ErrNotNumeric             = errors.New("string is not numeric")
+	ErrNotPrintableASCII      = errors.New("string contains non-printable ASCII characters")
+	ErrStartsWith             = errors.New("string starts with the substring")
+	ErrNotStartsWith          = errors.New("string does not start with the substring")
+)
 
-// StringIsPresent checks if a string is present.
-func StringIsPresent(value string) bool {
-	return value != ""
+// StringIsAlpha checks if a string contains only letters.
+func StringIsAlpha(s string) error {
+	if regexp.MustCompile(`^[a-zA-Z]+$`).MatchString(s) {
+		return nil
+	}
+	return ErrNotAlpha
 }
 
-// StringIsBlank checks if a string is blank.
-func StringIsBlank(value string) bool {
-	return value == ""
+// StringIsAlphanumeric checks if a string contains only numbers.
+func StringIsAlphanumeric(s string) error {
+	if !regexp.MustCompile(`^[a-zA-Z0-9]+$`).MatchString(s) {
+		return ErrNotAlphanumeric
+	}
+	return nil
 }
 
-// StringIsValidEmail checks if a string is a valid email address.
-func StringIsValidEmail(email string) bool {
-	return emailRegex.MatchString(email)
+// StringIsAlphaUnicode checks if a string contains only unicode letters.
+func StringIsAlphanumericUnicode(s string) error {
+	if !regexp.MustCompile(`^[\p{L}\p{N}]+$`).MatchString(s) {
+		return ErrNotAlphanumericUnicode
+	}
+	return nil
 }
 
-// StringIsValidHostname checks if a string is a valid hostname.
-// The string must not be longer than 255 characters.
-// The string must not end with a dot.
-// The string must only consist of valid characters.
-// The string must resolve to at least one IP address.
-func StringIsValidHostname(s string) bool {
-	// Compile the regular expression.
-	// The regular expression must match the entire string.
-	re, err := regexp.Compile(`^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$`)
-	if err != nil {
-		return false
+// StringIsAlphaUnicode checks if a string contains only unicode letters.
+func StringIsAlphaUnicode(s string) error {
+	if !regexp.MustCompile(`^[\p{L}]+$`).MatchString(s) {
+		return ErrNotAlphaUnicode
 	}
-	if len(s) > 255 {
-		return false
-	}
-	if s[len(s)-1] == '.' {
-		return false
-	}
-	if !re.MatchString(s) {
-		return false
-	}
-	// Lookup the IP addresses for the hostname.
-	ips, err := net.LookupIP(s)
-	if err != nil {
-		return false
-	}
-	if len(ips) == 0 {
-		return false
-	}
-	return true
+	return nil
 }
 
-// StringIsIPv4 checks if a string is a valid IPv4 address.
-func StringIsIPv4(s string) bool {
-	ip := net.ParseIP(s)
-	return ip != nil && ip.To4() != nil
+// StringIsASCIICode checks if a string contains only ASCII characters.
+func StringIsASCIICode(s string) error {
+	if !regexp.MustCompile(`^[\x00-\x7F]+$`).MatchString(s) {
+		return ErrNotASCIICode
+	}
+	return nil
 }
 
-// StringIsIPv6 checks if a string is a valid IPv6 address.
-func StringIsIPv6(s string) bool {
-	ip := net.ParseIP(s)
-	return ip != nil && ip.To4() == nil
+// StringIsBoolean checks if a string is a boolean.
+func StringIsBoolean(s string) error {
+	if !regexp.MustCompile(`^(?i)(true|false)$`).MatchString(s) {
+		return ErrNotBoolean
+	}
+	return nil
 }
 
-// StringIsURL checks if a string is a valid URL.
-func StringIsURL(s string) bool {
-	u, err := url.Parse(s)
-	return err == nil && u.Scheme != "" && u.Host != ""
+// StringContains checks if a string contains a substring.
+func StringContains(s, substr string) error {
+	if !strings.Contains(s, substr) {
+		return ErrDoesNotContain
+	}
+	return nil
+}
+
+// StringContainsAny checks if a string contains any of the substrings.
+func StringContainsAny(s string, substrs ...string) error {
+	for _, substr := range substrs {
+		if strings.Contains(s, substr) {
+			return nil
+		}
+	}
+	return ErrDoesNotContainAny
+}
+
+// StringContainsRune checks if a string contains a rune.
+func StringContainsRune(s string, r rune) error {
+	if !strings.ContainsRune(s, r) {
+		return ErrDoesNotContainRune
+	}
+	return nil
+}
+
+// StringEndsNotWith checks if a string does not end with a substring.
+func StringEndsNotWith(s, substr string) error {
+	if strings.HasSuffix(s, substr) {
+		return ErrEndsWith
+	}
+	return nil
+}
+
+// StringEndsWith checks if a string ends with a substring.
+func StringEndsWith(s, substr string) error {
+	if !strings.HasSuffix(s, substr) {
+		return ErrEndsNotWith
+	}
+	return nil
+}
+
+// StringExcludes checks if a string excludes a substring.
+func StringExcludes(s, substr string) error {
+	if strings.Contains(s, substr) {
+		return ErrExcludes
+	}
+	return nil
+}
+
+// StringExcludesAll checks if a string excludes all of the substrings.
+func StringExcludesAll(s string, substrs ...string) error {
+	for _, substr := range substrs {
+		if strings.Contains(s, substr) {
+			return ErrExcludesAll
+		}
+	}
+	return nil
+}
+
+// StringExcludesRune checks if a string excludes a rune.
+func StringExcludesRune(s string, r rune) error {
+	if strings.ContainsRune(s, r) {
+		return ErrExcludesRune
+	}
+	return nil
+}
+
+// StringIsLowerCase checks if a string is lowercase.
+func StringIsLowerCase(s string) error {
+	if s != strings.ToLower(s) {
+		return ErrNotLowerCase
+	}
+	return nil
+}
+
+// StringIsUpperCase checks if a string is uppercase.
+func StringIsUpperCase(s string) error {
+	if s != strings.ToUpper(s) {
+		return ErrNotUpercase
+	}
+	return nil
+}
+
+// StringIsMultibyte checks if a string contains one or more multibyte characters.
+func StringIsMultibyte(s string) error {
+	if len(s) == len([]rune(s)) {
+		return ErrNotMultibyte
+	}
+	return nil
+}
+
+// StringIsNumeric checks if a string contains only numbers.
+func StringIsNumeric(s string) error {
+	if !regexp.MustCompile(`^[0-9]+$`).MatchString(s) {
+		return ErrNotNumeric
+	}
+	return nil
+}
+
+// StringIsPrintableASCII checks if a string contains only printable ASCII characters.
+func StringIsPrintableASCII(s string) error {
+	if !regexp.MustCompile(`^[\x20-\x7E]+$`).MatchString(s) {
+		return ErrNotPrintableASCII
+	}
+	return nil
+}
+
+// StringStartsNotWith checks if a string does not start with a substring.
+func StringStartsNotWith(s, substr string) error {
+	if strings.HasPrefix(s, substr) {
+		return ErrStartsWith
+	}
+	return nil
+}
+
+// StringStartsWith checks if a string starts with a substring.
+func StringStartsWith(s, substr string) error {
+	if !strings.HasPrefix(s, substr) {
+		return ErrNotStartsWith
+	}
+	return nil
 }

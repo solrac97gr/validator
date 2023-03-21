@@ -1,7 +1,7 @@
 package validations
 
 import (
-	"fmt"
+	"errors"
 	"net"
 	"net/url"
 	"regexp"
@@ -9,28 +9,51 @@ import (
 )
 
 var (
-	errEmptyIPAddress      = fmt.Errorf("IP address cannot be empty")
-	errInvalidIPAddress    = fmt.Errorf("invalid IP address")
-	errEmptyHostname       = fmt.Errorf("hostname cannot be empty")
-	errHostnameTooLong     = fmt.Errorf("hostname is too long")
-	errInvalidHostname     = fmt.Errorf("invalid hostname")
-	errInvalidIPv6Address  = fmt.Errorf("invalid IPv6 address")
-	errExpectedIPv6Address = fmt.Errorf("IPv6 address expected")
-	errInvalidIPv4Address  = fmt.Errorf("invalid IPv4 address")
-	errExpectedIPv4Address = fmt.Errorf("IPv4 address expected")
-	errEmptyMACAddress     = fmt.Errorf("MAC address cannot be empty")
-	errInvalidMACAddress   = fmt.Errorf("invalid MAC address")
-	errEmptyURL            = fmt.Errorf("URL cannot be empty")
-	errInvalidURL          = fmt.Errorf("invalid URL")
+	// ErrEmptyIPAddress is returned when IP address is empty.
+	ErrEmptyIPAddress = errors.New("IP address cannot be empty")
+	// ErrInvalidIPAddress is returned when IP address is invalid.
+	ErrInvalidIPAddress = errors.New("invalid IP address")
+	// ErrEmptyHostname is returned when hostname is empty.
+	ErrEmptyHostname = errors.New("hostname cannot be empty")
+	// ErrHostnameTooLong is returned when hostname is too long.
+	ErrHostnameTooLong = errors.New("hostname is too long")
+	// ErrInvalidHostname is returned when hostname is invalid.
+	ErrInvalidHostname = errors.New("invalid hostname")
+	// ErrInvalidIPv6Address is returned when IPv6 address is invalid.
+	ErrInvalidIPv6Address = errors.New("invalid IPv6 address")
+	// ErrExpectedIPv6Address is returned when IPv6 address is expected.
+	ErrExpectedIPv6Address = errors.New("IPv6 address expected")
+	// ErrInvalidIPv4Address is returned when IPv4 address is invalid.
+	ErrInvalidIPv4Address = errors.New("invalid IPv4 address")
+	// ErrExpectedIPv4Address is returned when IPv4 address is expected.
+	ErrExpectedIPv4Address = errors.New("IPv4 address expected")
+	// ErrEmptyMACAddress is returned when MAC address is empty.
+	ErrEmptyMACAddress = errors.New("MAC address cannot be empty")
+	// ErrInvalidMACAddress is returned when MAC address is invalid.
+	ErrInvalidMACAddress = errors.New("invalid MAC address")
+	// ErrEmptyURL is returned when URL is empty.
+	ErrEmptyURL = errors.New("URL cannot be empty")
+	// ErrInvalidURL is returned when URL is invalid.
+	ErrInvalidURL = errors.New("invalid URL")
+	// ErrInvalidCIDRv4 is returned when a CIDRv4 address is invalid.
+	ErrInvalidCIDRv4 = errors.New("invalid CIDRv4 address")
+	// ErrInvalidCIDRv6 is returned when a CIDRv6 address is invalid.
+	ErrInvalidCIDRv6 = errors.New("invalid CIDRv6 address")
+	// ErrInvalidDataURL is returned when a data URL is invalid.
+	ErrInvalidDataURL = errors.New("invalid data URL")
+	// ErrInvalidFQDN is returned when a fully qualified domain name is invalid.
+	ErrInvalidFQDN = errors.New("invalid FQDN")
+	// ErrInvalidRFC952Hostname is returned when an RFC 952 hostname is invalid.
+	ErrInvalidRFC952Hostname = errors.New("invalid RFC 952 hostname")
 )
 
 // ValidateIPAddress validates an IPv4 or IPv6 address.
 func ValidateIPAddress(ipAddress string) error {
 	if ipAddress == "" {
-		return errEmptyIPAddress
+		return ErrEmptyIPAddress
 	}
 	if net.ParseIP(ipAddress) == nil {
-		return errInvalidIPAddress
+		return ErrInvalidIPAddress
 	}
 	return nil
 }
@@ -38,10 +61,10 @@ func ValidateIPAddress(ipAddress string) error {
 // ValidateHostname validates a hostname.
 func ValidateHostname(hostname string) error {
 	if hostname == "" {
-		return errEmptyHostname
+		return ErrEmptyHostname
 	}
 	if len(hostname) > 255 {
-		return errHostnameTooLong
+		return ErrHostnameTooLong
 	}
 	if hostname[len(hostname)-1] == '.' {
 		hostname = hostname[:len(hostname)-1]
@@ -49,7 +72,7 @@ func ValidateHostname(hostname string) error {
 	allowed := regexp.MustCompile(`^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])$`)
 	for _, label := range strings.Split(hostname, ".") {
 		if len(label) > 63 || !allowed.MatchString(label) {
-			return errInvalidHostname
+			return ErrInvalidHostname
 		}
 	}
 	return nil
@@ -58,14 +81,14 @@ func ValidateHostname(hostname string) error {
 // ValidateIPv6Address validates an IPv6 address.
 func ValidateIPv6Address(ipAddress string) error {
 	if ipAddress == "" {
-		return errEmptyIPAddress
+		return ErrEmptyIPAddress
 	}
 	ip := net.ParseIP(ipAddress)
 	if ip == nil {
-		return errInvalidIPv6Address
+		return ErrInvalidIPv6Address
 	}
 	if ip.To4() != nil {
-		return errExpectedIPv6Address
+		return ErrExpectedIPv6Address
 	}
 	return nil
 }
@@ -73,14 +96,14 @@ func ValidateIPv6Address(ipAddress string) error {
 // ValidateIPv4Address validates an IPv4 address.
 func ValidateIPv4Address(ipAddress string) error {
 	if ipAddress == "" {
-		return errEmptyIPAddress
+		return ErrEmptyIPAddress
 	}
 	ip := net.ParseIP(ipAddress)
 	if ip == nil {
-		return errInvalidIPv4Address
+		return ErrInvalidIPv4Address
 	}
 	if ip.To4() == nil {
-		return errExpectedIPv4Address
+		return ErrExpectedIPv4Address
 	}
 	return nil
 }
@@ -88,11 +111,11 @@ func ValidateIPv4Address(ipAddress string) error {
 // ValidateMACAddress validates a MAC address.
 func ValidateMACAddress(macAddress string) error {
 	if macAddress == "" {
-		return errEmptyMACAddress
+		return ErrEmptyMACAddress
 	}
 	macAddressRegex := regexp.MustCompile(`^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$`)
 	if !macAddressRegex.MatchString(macAddress) {
-		return errInvalidMACAddress
+		return ErrInvalidMACAddress
 	}
 	return nil
 }
@@ -100,11 +123,60 @@ func ValidateMACAddress(macAddress string) error {
 // ValidateURL validates a URL.
 func ValidateURL(urlString string) error {
 	if urlString == "" {
-		return errEmptyURL
+		return ErrEmptyURL
 	}
 	_, err := url.ParseRequestURI(urlString)
 	if err != nil {
-		return errInvalidURL
+		return ErrInvalidURL
+	}
+	return nil
+}
+
+var ()
+
+// ValidateCIDRv4 validates a CIDRv4 address.
+func ValidateCIDRv4(cidr string) error {
+	_, _, err := net.ParseCIDR(cidr)
+	if err != nil {
+		return ErrInvalidCIDRv4
+	}
+	return nil
+}
+
+// ValidateCIDRv6 validates a CIDRv6 address.
+func ValidateCIDRv6(cidr string) error {
+	_, _, err := net.ParseCIDR(cidr)
+	if err != nil {
+		return ErrInvalidCIDRv6
+	}
+	return nil
+}
+
+// ValidateDataURL validates a data URL.
+func ValidateDataURL(dataURL string) error {
+	pattern := "^data:[a-z]+/[a-z]+(;[a-z-]+=[a-z-]+)*;base64,[a-zA-Z0-9/+=]+$"
+	matched, err := regexp.MatchString(pattern, dataURL)
+	if err != nil || !matched {
+		return ErrInvalidDataURL
+	}
+	return nil
+}
+
+// ValidateFQDN validates a fully qualified domain name.
+func ValidateFQDN(fqdn string) error {
+	_, err := net.LookupHost(fqdn)
+	if err != nil {
+		return ErrInvalidFQDN
+	}
+	return nil
+}
+
+// ValidateRFC952 validates an RFC 952 hostname.
+func ValidateRFC952(hostname string) error {
+	pattern := "^[a-zA-Z][a-zA-Z0-9-]{0,22}[a-zA-Z0-9]$"
+	matched, err := regexp.MatchString(pattern, hostname)
+	if err != nil || !matched {
+		return ErrInvalidRFC952Hostname
 	}
 	return nil
 }

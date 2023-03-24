@@ -57,6 +57,16 @@ var (
 	ErrInvalidUDP6Addr = errors.New("invalid UDPv6 address")
 	// ErrInvalidUDPAddr is returned when ValidateUDPAddr is given an invalid UDP address.
 	ErrInvalidUDPAddr = errors.New("invalid UDP address")
+	// ErrInvalidUnixAddr is returned when ValidateUnixAddr is given an invalid Unix domain socket address.
+	ErrInvalidUnixAddr = errors.New("invalid Unix domain socket address")
+	// ErrInvalidURI is returned when ValidateURI is given an invalid URI.
+	ErrInvalidURI = errors.New("invalid URI")
+	// ErrInvalidHTTPURL is returned when ValidateHTTPURL is given an invalid HTTP or HTTPS URL.
+	ErrInvalidHTTPURL = errors.New("invalid HTTP or HTTPS URL")
+	// ErrInvalidURLEncoded is returned when ValidateURLEncoded is given invalid URL-encoded data.
+	ErrInvalidURLEncoded = errors.New("invalid URL-encoded data")
+	// ErrInvalidURNRFC2141 is returned when ValidateURNRFC2141 is given an invalid URN according to RFC 2141.
+	ErrInvalidURNRFC2141 = errors.New("invalid URN according to RFC 2141")
 )
 
 // ValidateIPAddress validates an IPv4 or IPv6 address.
@@ -237,6 +247,58 @@ func ValidateUDP6Addr(addr string) error {
 func ValidateUDPAddr(addr string) error {
 	if _, err := net.ResolveUDPAddr("udp", addr); err != nil {
 		return ErrInvalidUDPAddr
+	}
+	return nil
+}
+
+// ValidateUnixAddr checks if the given address is a valid Unix domain socket address.
+func ValidateUnixAddr(addr string) error {
+	if _, err := net.ResolveUnixAddr("unix", addr); err != nil {
+		return ErrInvalidUnixAddr
+	}
+	return nil
+}
+
+// ValidateURI checks if the given string is a valid URI.
+func ValidateURI(uri string) error {
+	if _, err := url.ParseRequestURI(uri); err != nil {
+		return ErrInvalidURI
+	}
+	return nil
+}
+
+// ValidateURL checks if the given string is a valid URL.
+func ValidateURL(urlStr string) error {
+	if _, err := url.Parse(urlStr); err != nil {
+		return ErrInvalidURL
+	}
+	return nil
+}
+
+// ValidateHTTPURL checks if the given string is a valid HTTP or HTTPS URL.
+func ValidateHTTPURL(urlStr string) error {
+	u, err := url.Parse(urlStr)
+	if err != nil {
+		return ErrInvalidHTTPURL
+	}
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return ErrInvalidHTTPURL
+	}
+	return nil
+}
+
+// ValidateURLEncoded checks if the given string is valid URL-encoded data.
+func ValidateURLEncoded(data string) error {
+	if _, err := url.ParseQuery(data); err != nil {
+		return ErrInvalidURLEncoded
+	}
+	return nil
+}
+
+// ValidateURNRFC2141 checks if the given string is a valid URN according to RFC 2141.
+func ValidateURNRFC2141(urn string) error {
+	if _, err := url.Parse("urn:" + urn); err != nil {
+		return ErrInvalidURNRFC2141
 	}
 	return nil
 }

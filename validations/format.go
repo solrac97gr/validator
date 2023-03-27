@@ -65,3 +65,41 @@ func IsBCP47LanguageTag(str string) error {
 	}
 	return nil
 }
+
+// IsBTCAddress checks if the given string is a valid Bitcoin address.
+func IsBTCAddress(str string) error {
+	if len(str) < 26 || len(str) > 35 {
+		return errors.New("invalid Bitcoin address")
+	}
+
+	// Check the characters are valid
+	for _, c := range str {
+		if !((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
+			return errors.New("invalid Bitcoin address")
+		}
+	}
+
+	// Decode the base58 string
+	decoded, err := base58Decode(str)
+	if err != nil {
+		return errors.New("invalid Bitcoin address")
+	}
+
+	// Check the length of the decoded string
+	if len(decoded) != 25 {
+		return errors.New("invalid Bitcoin address")
+	}
+
+	// Check the version byte (0x00 for mainnet, 0x6f for testnet)
+	if decoded[0] != 0x00 && decoded[0] != 0x6f {
+		return errors.New("invalid Bitcoin address")
+	}
+
+	// Check the checksum
+	checksum := sha256(sha256(decoded[:21]))[:4]
+	if string(checksum) != string(decoded[21:]) {
+		return errors.New("invalid Bitcoin address")
+	}
+
+	return nil
+}

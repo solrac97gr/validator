@@ -1,8 +1,10 @@
 package validations
 
 import (
+	"crypto/sha256"
 	"encoding/base64"
 	"errors"
+	"math/big"
 	"regexp"
 )
 
@@ -96,10 +98,55 @@ func IsBTCAddress(str string) error {
 	}
 
 	// Check the checksum
-	checksum := sha256(sha256(decoded[:21]))[:4]
+	checksum := sha256C(sha256C(decoded[:21]))[:4]
 	if string(checksum) != string(decoded[21:]) {
 		return errors.New("invalid Bitcoin address")
 	}
 
 	return nil
+}
+
+func base58Decode(str string) ([]byte, error) {
+	alphabet := "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+
+	// Build the decoding table
+	decTable := make(map[byte]int)
+	for i := 0; i < len(alphabet); i++ {
+		decTable[alphabet[i]] = i
+	}
+
+	// Convert the string to a byte slice
+	bytes := []byte(str)
+
+	// Decode the base58 string
+	result := big.NewInt(0)
+	base := big.NewInt(58)
+	for i := 0; i < len(bytes); i++ {
+		char := bytes[i]
+		val, ok := decTable[char]
+		if !ok {
+			return nil, errors.New("invalid base58 character")
+		}
+		result.Mul(result, base)
+		result.Add(result, big.NewInt(int64(val)))
+	}
+
+	// Convert the result to a byte slice
+	decoded := result.Bytes()
+
+	// Pad the byte slice with zeros
+	padSize := 0
+	for i := 0; i < len(bytes) && bytes[i] == alphabet[0]; i++ {
+		padSize++
+	}
+	resultBytes := make([]byte, padSize+len(decoded))
+	copy(resultBytes[padSize:], decoded)
+
+	return resultBytes, nil
+}
+
+func sha256C(data []byte) []byte {
+	hasher := sha256.New()
+	hasher.Write(data)
+	return hasher.Sum(nil)
 }

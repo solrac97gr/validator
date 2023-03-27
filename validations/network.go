@@ -142,20 +142,6 @@ func ValidateMACAddress(macAddress string) error {
 	return nil
 }
 
-// ValidateURL validates a URL.
-func ValidateURL(urlString string) error {
-	if urlString == "" {
-		return ErrEmptyURL
-	}
-	_, err := url.ParseRequestURI(urlString)
-	if err != nil {
-		return ErrInvalidURL
-	}
-	return nil
-}
-
-var ()
-
 // ValidateCIDRv4 validates a CIDRv4 address.
 func ValidateCIDRv4(cidr string) error {
 	_, _, err := net.ParseCIDR(cidr)

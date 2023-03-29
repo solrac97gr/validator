@@ -36,6 +36,7 @@ package main
 import (
     "fmt"
     "github.com/solrac97gr/validator"
+    "github.com/solrac97gr/validations"
 )
 
 type User struct {
@@ -44,12 +45,12 @@ type User struct {
 }
 
 func (u *User) Validate(args ...interface{}) error {
-    err := validator.StringRequired(u)
+    err := validations.StringRequired(u)
     if err != nil {
         return err
     }
 
-   err = validator.IntGratherThan(u.Age,18)
+   err = validations.IntGratherThan(u.Age,18)
     if err != nil {
         return err
     }

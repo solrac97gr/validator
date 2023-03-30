@@ -77,6 +77,8 @@ func main() {
 
 - Format
 - String
+- Slice
+- Float
 - Network
 - Int
 

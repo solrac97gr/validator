@@ -73,6 +73,13 @@ func main() {
     }
 }
 ```
+## Validations
+
+- Format
+- String
+- Network
+- Int
+
 ## Idea
 
 You must create a struct who implements the EvaluableStruct interface and add the Validate method who contains the logic for validate the struct.

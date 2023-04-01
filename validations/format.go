@@ -150,3 +150,49 @@ func sha256C(data []byte) []byte {
 	hasher.Write(data)
 	return hasher.Sum(nil)
 }
+
+func IsBTCAddrBech32(str string) error {
+	if len(str) < 8 || len(str) > 90 {
+		return errors.New("invalid Bitcoin address")
+	}
+
+	// Check the string has 'bc' prefix
+	if str[:2] != "bc" {
+		return errors.New("invalid Bitcoin address")
+	}
+
+	// Check the characters are valid
+	for _, c := range str {
+		if c < ' ' || c > 126 {
+			return errors.New("invalid Bitcoin address")
+		}
+	}
+
+	// Decode the Bech32 string
+	hrp, data, err := bech32Decode(str)
+	if err != nil {
+		return errors.New("invalid Bitcoin address")
+	}
+
+	// Check the HRP is valid ("bc" for mainnet, "tb" for testnet)
+	if hrp != "bc" && hrp != "tb" {
+		return errors.New("invalid Bitcoin address")
+	}
+
+	// Check the length of the data is valid (20 bytes)
+	if len(data) != 20 {
+		return errors.New("invalid Bitcoin address")
+	}
+
+	return nil
+}
+
+// bech32Decode decodes a Bech32 string into its human-readable part (HRP) and data parts.
+func bech32Decode(str string) (string, []byte, error) {
+	decoded, err := bech32.Decode(str)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return decoded.HRP, decoded.Data, nil
+}

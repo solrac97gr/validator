@@ -6,6 +6,7 @@ import (
 	"errors"
 	"math/big"
 	"regexp"
+	"strconv"
 )
 
 var (
@@ -14,6 +15,8 @@ var (
 	ErrInvalidBase64RawURL     = errors.New("invalid base64rawurl encoding")
 	ErrInvalidBIC              = errors.New("invalid BIC")
 	ErrInvalidBCP47LanguageTag = errors.New("invalid BCP47 language tag")
+	// ErrInvalidCreditCard is returned when the provided credit card number is invalid
+	ErrInvalidCreditCard = errors.New("invalid credit card number")
 )
 
 // IsBase64 checks if the given string is a valid base64 encoding.
@@ -151,48 +154,50 @@ func sha256C(data []byte) []byte {
 	return hasher.Sum(nil)
 }
 
-func IsBTCAddrBech32(str string) error {
-	if len(str) < 8 || len(str) > 90 {
-		return errors.New("invalid Bitcoin address")
-	}
-
-	// Check the string has 'bc' prefix
-	if str[:2] != "bc" {
-		return errors.New("invalid Bitcoin address")
-	}
-
-	// Check the characters are valid
+func IsValidCreditCard(str string) error {
+	// Remove any non-digit characters
+	digits := ""
 	for _, c := range str {
-		if c < ' ' || c > 126 {
-			return errors.New("invalid Bitcoin address")
+		if c >= '0' && c <= '9' {
+			digits += string(c)
 		}
 	}
 
-	// Decode the Bech32 string
-	hrp, data, err := bech32Decode(str)
-	if err != nil {
-		return errors.New("invalid Bitcoin address")
+	// Check the length is valid
+	length := len(digits)
+	if length < 13 || length > 19 {
+		return ErrInvalidCreditCard
 	}
 
-	// Check the HRP is valid ("bc" for mainnet, "tb" for testnet)
-	if hrp != "bc" && hrp != "tb" {
-		return errors.New("invalid Bitcoin address")
+	// Convert the string to a list of digits
+	digitsList := make([]int, length)
+	for i := 0; i < length; i++ {
+		digit, err := strconv.Atoi(string(digits[i]))
+		if err != nil {
+			return ErrInvalidCreditCard
+		}
+		digitsList[i] = digit
 	}
 
-	// Check the length of the data is valid (20 bytes)
-	if len(data) != 20 {
-		return errors.New("invalid Bitcoin address")
+	// Calculate the sum of the digits using Luhn's algorithm
+	sum := 0
+	for i := length - 1; i >= 0; i-- {
+		digit := digitsList[i]
+
+		if (length-i)%2 == 0 {
+			digit *= 2
+			if digit > 9 {
+				digit -= 9
+			}
+		}
+
+		sum += digit
+	}
+
+	// Check if the sum is divisible by 10
+	if sum%10 != 0 {
+		return ErrInvalidCreditCard
 	}
 
 	return nil
-}
-
-// bech32Decode decodes a Bech32 string into its human-readable part (HRP) and data parts.
-func bech32Decode(str string) (string, []byte, error) {
-	decoded, err := bech32.Decode(str)
-	if err != nil {
-		return "", nil, err
-	}
-
-	return decoded.HRP, decoded.Data, nil
 }

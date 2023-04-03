@@ -17,6 +17,8 @@ var (
 	ErrInvalidBCP47LanguageTag = errors.New("invalid BCP47 language tag")
 	// ErrInvalidCreditCard is returned when the provided credit card number is invalid
 	ErrInvalidCreditCard = errors.New("invalid credit card number")
+	// ErrInvalidMongoID is returned when the provided string is not a valid MongoDB object ID.
+	ErrInvalidMongoID = errors.New("invalid MongoDB object ID")
 )
 
 // IsBase64 checks if the given string is a valid base64 encoding.
@@ -197,6 +199,22 @@ func IsValidCreditCard(str string) error {
 	// Check if the sum is divisible by 10
 	if sum%10 != 0 {
 		return ErrInvalidCreditCard
+	}
+
+	return nil
+}
+
+// IsValidMongoID checks if the given string is a valid MongoDB object ID.
+func IsValidMongoID(str string) error {
+	// Check the string length is valid
+	if len(str) != 24 {
+		return ErrInvalidMongoID
+	}
+
+	// Check if the string only contains valid hexadecimal characters
+	matched, err := regexp.MatchString("^[0-9a-fA-F]{24}$", str)
+	if err != nil || !matched {
+		return ErrInvalidMongoID
 	}
 
 	return nil

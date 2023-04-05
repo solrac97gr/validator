@@ -7,6 +7,9 @@ import (
 	"math/big"
 	"regexp"
 	"strconv"
+	"strings"
+
+	"github.com/robfig/cron"
 )
 
 var (
@@ -19,6 +22,7 @@ var (
 	ErrInvalidCreditCard = errors.New("invalid credit card number")
 	// ErrInvalidMongoID is returned when the provided string is not a valid MongoDB object ID.
 	ErrInvalidMongoID = errors.New("invalid MongoDB object ID")
+	ErrInvalidCron    = errors.New("invalid CRON expression")
 )
 
 // IsBase64 checks if the given string is a valid base64 encoding.
@@ -215,6 +219,21 @@ func IsValidMongoID(str string) error {
 	matched, err := regexp.MatchString("^[0-9a-fA-F]{24}$", str)
 	if err != nil || !matched {
 		return ErrInvalidMongoID
+	}
+
+	return nil
+}
+
+// IsValidCron checks if the given string is a valid CRON expression.
+func IsValidCron(str string) error {
+	parts := strings.Fields(str)
+	if len(parts) != 5 {
+		return ErrInvalidCron
+	}
+
+	_, err := cron.NewParser(cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow).Parse(str)
+	if err != nil {
+		return ErrInvalidCron
 	}
 
 	return nil

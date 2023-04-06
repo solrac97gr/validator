@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/robfig/cron"
 )
@@ -21,8 +22,9 @@ var (
 	// ErrInvalidCreditCard is returned when the provided credit card number is invalid
 	ErrInvalidCreditCard = errors.New("invalid credit card number")
 	// ErrInvalidMongoID is returned when the provided string is not a valid MongoDB object ID.
-	ErrInvalidMongoID = errors.New("invalid MongoDB object ID")
-	ErrInvalidCron    = errors.New("invalid CRON expression")
+	ErrInvalidMongoID  = errors.New("invalid MongoDB object ID")
+	ErrInvalidCron     = errors.New("invalid CRON expression")
+	ErrInvalidDatetime = errors.New("invalid Datetime")
 )
 
 // IsBase64 checks if the given string is a valid base64 encoding.
@@ -236,5 +238,14 @@ func IsValidCron(str string) error {
 		return ErrInvalidCron
 	}
 
+	return nil
+}
+
+// IsValidDatetime checks if the given string is a valid datetime in the format of "YYYY-MM-DD HH:MM:SS".
+func IsValidDatetime(str string) error {
+	_, err := time.Parse("2006-01-02 15:04:05", str)
+	if err != nil {
+		return ErrInvalidDatetime
+	}
 	return nil
 }

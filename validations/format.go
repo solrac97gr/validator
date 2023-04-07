@@ -22,9 +22,10 @@ var (
 	// ErrInvalidCreditCard is returned when the provided credit card number is invalid
 	ErrInvalidCreditCard = errors.New("invalid credit card number")
 	// ErrInvalidMongoID is returned when the provided string is not a valid MongoDB object ID.
-	ErrInvalidMongoID  = errors.New("invalid MongoDB object ID")
-	ErrInvalidCron     = errors.New("invalid CRON expression")
-	ErrInvalidDatetime = errors.New("invalid Datetime")
+	ErrInvalidMongoID         = errors.New("invalid MongoDB object ID")
+	ErrInvalidCron            = errors.New("invalid CRON expression")
+	ErrInvalidDatetime        = errors.New("invalid Datetime")
+	ErrInvalidE164PhoneNumber = errors.New("invalid E.164 phone number")
 )
 
 // IsBase64 checks if the given string is a valid base64 encoding.
@@ -246,6 +247,15 @@ func IsValidDatetime(str string) error {
 	_, err := time.Parse("2006-01-02 15:04:05", str)
 	if err != nil {
 		return ErrInvalidDatetime
+	}
+	return nil
+}
+
+// IsValidE164PhoneNumber checks if the given string is a valid E.164 phone number.
+func IsValidE164PhoneNumber(str string) error {
+	matched, err := regexp.MatchString(`^\+[1-9]\d{1,14}$`, str)
+	if err != nil || !matched {
+		return ErrInvalidE164PhoneNumber
 	}
 	return nil
 }

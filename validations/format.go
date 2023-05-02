@@ -26,6 +26,7 @@ var (
 	ErrInvalidCron            = errors.New("invalid CRON expression")
 	ErrInvalidDatetime        = errors.New("invalid Datetime")
 	ErrInvalidE164PhoneNumber = errors.New("invalid E.164 phone number")
+	ErrInvalidEmail           = errors.New("invalid email address")
 )
 
 // IsBase64 checks if the given string is a valid base64 encoding.
@@ -256,6 +257,14 @@ func IsValidE164PhoneNumber(str string) error {
 	matched, err := regexp.MatchString(`^\+[1-9]\d{1,14}$`, str)
 	if err != nil || !matched {
 		return ErrInvalidE164PhoneNumber
+	}
+	return nil
+}
+
+func IsValidEmail(str string) error {
+	matched, err := regexp.MatchString(`^[^@\s]+@[^@\s]+\.[^@\s]+$`, str)
+	if err != nil || !matched {
+		return ErrInvalidEmail
 	}
 	return nil
 }

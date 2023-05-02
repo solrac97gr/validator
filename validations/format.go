@@ -261,6 +261,7 @@ func IsValidE164PhoneNumber(str string) error {
 	return nil
 }
 
+// IsValidEmail checks if the given string is a valid email address.
 func IsValidEmail(str string) error {
 	matched, err := regexp.MatchString(`^[^@\s]+@[^@\s]+\.[^@\s]+$`, str)
 	if err != nil || !matched {
